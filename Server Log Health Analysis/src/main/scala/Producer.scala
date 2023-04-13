@@ -8,8 +8,15 @@ import scala.util.parsing.combinator.RegexParsers
 object Producer extends App with RegexParsers {
   // Define the log format using parser combinators
   def ipAddress: Parser[String] = """\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}""".r
+  def dash: Parser[String] = "-"
+  def dateTime: Parser[String] = """\[\d{2}/\w+/\d{4}:\d{2}:\d{2}:\d{2} \+\d{4}\]""".r
+  def requestType: Parser[String] = """"(POST|GET|PUT|DELETE|HEAD) """.r ^^ {
+    _.replaceAll("\"", "").replaceAll(" ", "")
+  }
 
-  def logEntry: Parser[String] = ipAddress
+  def logEntry: Parser[(String, String, String)] = ipAddress ~ dash ~ dash ~ dateTime ~ requestType ^^ {
+    case ip ~ _ ~ _ ~ ts ~ rt => (ip, ts, rt)
+  }
 
   // Configure Kafka producer properties
   val props = new Properties()
@@ -28,8 +35,8 @@ object Producer extends App with RegexParsers {
   val source = Source.fromFile(logFile)
   for (line <- source.getLines) {
     parse(logEntry, line) match {
-      case Success(ipAddress, _) =>
-        val json = Serialization.write(Map("ip" -> ipAddress))
+      case Success((ipAddress, timestamp, requestType), _) =>
+        val json = Serialization.write(Map("ip" -> ipAddress, "timestamp" -> timestamp, "requestType" -> requestType))
         val record = new ProducerRecord[String, String]("logs", null, json)
         producer.send(record)
       case _ =>
