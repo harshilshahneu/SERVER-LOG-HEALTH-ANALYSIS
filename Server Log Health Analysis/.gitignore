@@ -42,5 +42,3 @@ bin/
 # general
 *.class
 
-#mac
-.DS_Store
