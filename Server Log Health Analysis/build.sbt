@@ -17,4 +17,10 @@ libraryDependencies += "io.circe" %% "circe-core" % "0.14.1"
 libraryDependencies += "io.circe" %% "circe-generic" % "0.14.1"
 libraryDependencies += "io.circe" %% "circe-parser" % "0.14.1"
 
+libraryDependencies ++= Seq(
+  "org.apache.spark" %% "spark-core" % "3.2.0",
+  "org.apache.spark" %% "spark-streaming" % "3.2.0",
+  "org.apache.spark" %% "spark-streaming-kafka-0-10" % "3.2.0"
+)
+
 
