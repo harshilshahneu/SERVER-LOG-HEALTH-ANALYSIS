@@ -30,15 +30,17 @@ object Producer extends App with RegexParsers {
     """\s*"(-|http://[a-zA-Z0-9._/-]*)""".r ^^ {
       _.replaceAll("\"", "").trim()
     } //correct
- def userAgent: Parser[String] = """.*""".r ^^ {
-   _.replaceAll("\\\" \\\"", "")
- }
+  def userAgent: Parser[String] = """".*"""".r ^^ { str =>
+    str.replace("\" \"", "").replace("\"", "")
+  }
+
+  def responseTime: Parser[String] = """\d+""".r
 
 
-  def logEntry: Parser[(String, String, String, String, String, String, String, String, String)] =
-    ipAddress ~ dash ~ dash ~ dateTime ~ request ~ endpoint ~ protocol ~ status ~ bytes ~ referrer ~ userAgent ^^ {
-      case ip ~ _ ~ _ ~ time ~ req ~ endpoint ~ protocol ~ status ~ bytes ~ referrer ~ ua =>
-        (ip, time, req, endpoint, protocol, status, bytes, referrer, ua)
+  def logEntry: Parser[(String, String, String, String, String, String, String, String, String, String)] =
+    ipAddress ~ dash ~ dash ~ dateTime ~ request ~ endpoint ~ protocol ~ status ~ bytes ~ referrer ~ userAgent ~ responseTime ^^ {
+      case ip ~ _ ~ _ ~ time ~ req ~ endpoint ~ protocol ~ status ~ bytes ~ referrer ~ ua ~rt =>
+        (ip, time, req, endpoint, protocol, status, bytes, referrer, ua, rt)
     }
 
   val props = new Properties()
@@ -56,7 +58,7 @@ object Producer extends App with RegexParsers {
     // Parse the log entry
     val result = parse(logEntry, line)
     result match {
-      case Success((ip, time, req, endpoint, protocol, status, bytes, referrer, ua), _) =>
+      case Success((ip, time, req, endpoint, protocol, status, bytes, referrer, ua, rt), _) =>
         // Construct a JSON object from the log entry fields
 
         val json = Serialization.write(
@@ -69,7 +71,8 @@ object Producer extends App with RegexParsers {
             "status" -> status.toInt,
             "bytes" -> bytes.toInt,
             "referrer" -> referrer,
-            "userAgent" -> ua
+            "userAgent" -> ua,
+            "responseTime" -> rt
           )
         )
         // Send the JSON object as a Kafka message
