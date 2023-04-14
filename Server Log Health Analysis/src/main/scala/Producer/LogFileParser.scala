@@ -55,7 +55,14 @@ class LogFileParser extends RegexParsers {
     val logEntries = Source.fromFile(logFile).getLines().flatMap { line =>
       parse(logEntry, line) match {
         case Success(logEntry, _) => Some(logEntry)
-        case _ => None
+        case Error(msg, _) => {
+          println(s"Error while parsing log entry: $msg")
+          None
+        }
+        case Failure(msg, _) => {
+          println(s"Failed to parse log entry: $msg")
+          None
+        }
       }
     }.toSeq
 
