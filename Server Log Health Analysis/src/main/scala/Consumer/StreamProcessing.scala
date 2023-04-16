@@ -1,6 +1,8 @@
+package Consumer
+
 import org.apache.spark.SparkConf
-import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.streaming.kafka010._
+import org.apache.spark.streaming.{Seconds, StreamingContext}
 
 object StreamProcessing {
   def main(args: Array[String]): Unit = {

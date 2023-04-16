@@ -1,8 +1,11 @@
+package Consumer
+
+import io.circe.generic.auto._
+import io.circe.parser.decode
+import org.apache.kafka.clients.consumer.{ConsumerRecords, KafkaConsumer}
+
 import java.util.Properties
 import scala.collection.JavaConverters._
-import org.apache.kafka.clients.consumer.{ConsumerRecords, KafkaConsumer}
-import io.circe.parser.decode
-import io.circe.generic.auto._
 
 case class LogRecord(ip: String, timestamp: String, request: String, responseCode: Int)
 
@@ -16,6 +19,8 @@ object Consumer extends App {
 
   val consumer = new KafkaConsumer[String, String](props)
   consumer.subscribe(List("logs").asJava)
+
+  println("Test")
 
   while (true) {
     val records: ConsumerRecords[String, String] = consumer.poll(100)
