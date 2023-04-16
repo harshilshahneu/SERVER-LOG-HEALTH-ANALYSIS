@@ -23,7 +23,9 @@ libraryDependencies ++= Seq(
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % "3.2.0",
   "org.apache.spark" %% "spark-streaming" % "3.2.0",
-  "org.apache.spark" %% "spark-streaming-kafka-0-10" % "3.2.0"
+  "org.apache.spark" %% "spark-streaming-kafka-0-10" % "3.2.0",
+  "org.apache.kafka" % "kafka-clients" % "2.8.1",
+  "org.apache.spark" %% "spark-mllib" % "3.2.0"
 )
 
 
