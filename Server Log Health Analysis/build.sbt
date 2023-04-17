@@ -16,16 +16,15 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-core" % "0.14.1",
   "io.circe" %% "circe-generic" % "0.14.1",
   "io.circe" %% "circe-parser" % "0.14.1",
-  "org.scalatest" %% "scalatest" % "3.2.9" % Test
-)
-
-
-libraryDependencies ++= Seq(
+  "org.scalatest" %% "scalatest" % "3.2.9" % Test,
   "org.apache.spark" %% "spark-core" % "3.2.0",
   "org.apache.spark" %% "spark-streaming" % "3.2.0",
   "org.apache.spark" %% "spark-streaming-kafka-0-10" % "3.2.0",
   "org.apache.kafka" % "kafka-clients" % "2.8.1",
-  "org.apache.spark" %% "spark-mllib" % "3.2.0"
+  "org.apache.spark" %% "spark-mllib" % "3.2.0",
+  "javax.mail" % "mail" % "1.4.7",
+  "com.typesafe.akka" %% "akka-actor" % "2.6.10",
+  "com.typesafe.akka" %% "akka-stream" % "2.6.10"
 )
 
 
