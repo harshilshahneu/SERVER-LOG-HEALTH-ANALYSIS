@@ -3,6 +3,11 @@ package Consumer
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.kafka010._
 import org.apache.spark.streaming.{Seconds, StreamingContext}
+import org.json4s._
+import org.json4s.jackson.JsonMethods._
+import org.apache.log4j.{Level, Logger}
+
+case class KafkaMessage(ipAddress: String, dateTime: String, request: String, endpoint: String, protocol: String, status: Int, bytes: Int, referrer: String, userAgent: String, responseTime: Int) extends Serializable
 
 object StreamProcessing {
   def main(args: Array[String]): Unit = {
@@ -22,7 +27,7 @@ object StreamProcessing {
       "value.deserializer" -> "org.apache.kafka.common.serialization.StringDeserializer",
       "group.id" -> "test-consumer-group",
       "auto.offset.reset" -> "latest",
-      "enable.auto.commit" -> (false: java.lang.Boolean)
+      "enable.auto.commit" -> (true: java.lang.Boolean)
     )
 
     // Define topics to read from
@@ -34,11 +39,15 @@ object StreamProcessing {
       LocationStrategies.PreferConsistent,
       ConsumerStrategies.Subscribe[String, String](topics, kafkaParams)
     )
-
     // Process the Kafka stream
     kafkaStream.foreachRDD { rdd =>
       rdd.foreach { record =>
-        println(record.value())
+        val jsonString = record.value()
+
+        implicit val formats = DefaultFormats
+        val kafkaMessage = parse(jsonString).extract[KafkaMessage]
+        println(kafkaMessage)
+        
       }
     }
 
