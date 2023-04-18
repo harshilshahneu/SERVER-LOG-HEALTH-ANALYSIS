@@ -7,6 +7,7 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions._
 
 
 case class KafkaMessage(ipAddress: String, dateTime: String, request: String, endpoint: String, protocol: String, status: Int, bytes: Int, referrer: String, userAgent: String, responseTime: Int) extends Serializable
@@ -58,13 +59,24 @@ object StreamProcessing {
         }).toDF()
 
         // Batch the data into a DataFrame of 500 rows
-        val batchedDF = df.limit(500)
+        val numRows = df.count()
+        val numBatches = math.ceil(numRows.toDouble / 500).toInt
+        val batches = (0 until numBatches).map { i =>
+          val start = i * 500
+          val end = math.min(start + 500, numRows).toInt
+          df.limit(end - start).filter($"bytes" > 100).collect()
+        }
 
+        println(s"Number of batches: ${batches.length}")
         // Rule-based classification on the data
-        val classifiedDF = batchedDF.filter($"bytes" > 100)
-
+        val classifiedBatches = batches.map(batch => batch.filter(row => row.getAs[Int]("bytes") > 100))
+        println(s"Number of classified batches: ${classifiedBatches.length}")
         // Print the classified data to the console
-        classifiedDF.show()
+        classifiedBatches.foreach { batch =>
+          println(s"Batch size: ${batch.length}")
+//          batch.foreach(row => println(row))
+        }
+
       }
     }
 
