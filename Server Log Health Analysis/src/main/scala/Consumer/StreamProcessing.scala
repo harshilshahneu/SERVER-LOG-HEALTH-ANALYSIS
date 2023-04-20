@@ -19,7 +19,6 @@ case class KafkaMessage(ipAddress: String, dateTime: String, request: String, en
 object StreamProcessing {
   def main(args: Array[String]): Unit = {
 
-
     // Set the logger level to error
     Logger.getLogger("org").setLevel(Level.ERROR)
     Logger.getLogger("akka").setLevel(Level.ERROR)
@@ -100,7 +99,7 @@ object StreamProcessing {
 
           batch.map(row => {
             client.execute {
-              indexInto("artists").fields(
+              indexInto("anomalies").fields(
                 "ipAddress" -> row.getAs[String]("ipAddress"),
                 "dateTime" -> row.getAs[String]("dateTime"),
                 "request" -> row.getAs[String]("request"),
