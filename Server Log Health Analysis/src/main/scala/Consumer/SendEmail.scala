@@ -6,16 +6,16 @@ import javax.mail.internet.{InternetAddress, MimeMessage}
 
 object SendEmail {
   def send(anomaly: String): Unit = {
-    println("Sending email")
-    val fromEmail = "arvindmann307@gmail.com" // replace with your email address
-    val password = "**" // replace with your password
-    val toEmail = "bgharshilshah@gmail.com" // replace with the recipient's email address
+    val fromEmail = "arvindmann307@gmail.com" // Sender
+    val password = "" // Key generated
+    val toEmail = "bgharshilshah@gmail.com" // Receiver
 
     val props = new Properties()
     props.put("mail.smtp.host", "smtp.gmail.com")
     props.put("mail.smtp.port", "587")
     props.put("mail.smtp.auth", "true")
     props.put("mail.smtp.starttls.enable", "true")
+    props.put("mail.smtp.ssl.trust", "smtp.gmail.com")
 
     val auth = new Authenticator() {
       override def getPasswordAuthentication(): PasswordAuthentication = {
@@ -31,7 +31,7 @@ object SendEmail {
     message.setSubject("Anomaly Detected")
     message.setText(s"An anomaly has been detected: $anomaly")
 
+    println("Sending Alert")
     Transport.send(message)
-    println("Email sent successfully.")
   }
 }
