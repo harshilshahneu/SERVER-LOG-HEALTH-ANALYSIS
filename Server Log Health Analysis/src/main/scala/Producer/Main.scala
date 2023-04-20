@@ -3,7 +3,7 @@ package Producer
 object Main {
   def main(args: Array[String]): Unit = {
     val logFileParser = new LogFileParser()
-    val logFile = "src/main/resources/shortlogs.log"
+    val logFile = "src/main/resources/logfiles.log"
     val logEntries = logFileParser.parseLogFile(logFile)
 
     val kafkaMessageSender = new KafkaMessageSender("localhost:9092", "logs")
