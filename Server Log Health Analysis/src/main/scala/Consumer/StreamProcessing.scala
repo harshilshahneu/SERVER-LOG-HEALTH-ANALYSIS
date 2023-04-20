@@ -68,8 +68,9 @@ object StreamProcessing {
         }
 
         batches.foreach { batch =>
-          val message = s"Batch ${batch(0).getAs[String]("dateTime")} - ${batch.length} rows\n\n" +
+          val message = s"Number of Anomalies - ${batch.length}\n\n" +
             batch.map(row => s"IP Address: ${row.getAs[String]("ipAddress")}\n" +
+              s"Time Stamp: ${row.getAs[String]("dateTime")}\n" +
               s"Request: ${row.getAs[String]("request")}\n" +
               s"Endpoint: ${row.getAs[String]("endpoint")}\n" +
               s"Protocol: ${row.getAs[String]("protocol")}\n" +
