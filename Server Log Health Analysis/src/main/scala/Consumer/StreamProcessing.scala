@@ -31,7 +31,7 @@ object StreamProcessing {
 
     //create an index to store anomalies
     client.execute {
-      createIndex("anomalies").mapping(
+      createIndex("serveranomalies").mapping(
         properties(
           textField("ipAddress"),
           textField("dateTime"),
@@ -86,49 +86,40 @@ object StreamProcessing {
           kafkaMessage
         }).toDF()
 
-        // Batch the data into a DataFrame of 500 rows
-        val numRows = df.count()
-        val numBatches = math.ceil(numRows.toDouble / 500).toInt
-        val batches = (0 until numBatches).map { i =>
-          val start = i * 500
-          val end = math.min(start + 500, numRows).toInt
-          df.limit(end - start).filter($"bytes" > 100000 and $"responseTime" > 100000).collect()
-        }
+        val anomalyDF = df.filter($"bytes" > 100000 or $"responseTime" > 100000)
+        anomalyDF.collect().foreach { row =>
 
-        batches.foreach { batch =>
+          //Send data to ElasticSearch
+           client.execute {
+             indexInto("serveranomalies").fields(
+               "ipAddress" -> row.getAs[String]("ipAddress"),
+               "dateTime" -> row.getAs[String]("dateTime"),
+               "request" -> row.getAs[String]("request"),
+               "endpoint" -> row.getAs[String]("endpoint"),
+               "protocol" -> row.getAs[String]("protocol"),
+               "status" -> row.getAs[Int]("status"),
+               "bytes" -> row.getAs[Int]("bytes"),
+               "referrer" -> row.getAs[String]("referrer"),
+               "userAgent" -> row.getAs[String]("userAgent"),
+               "responseTime" -> row.getAs[Int]("responseTime")
+             ).refresh(RefreshPolicy.Immediate)
+           }.await
 
-          batch.map(row => {
-            client.execute {
-              indexInto("anomalies").fields(
-                "ipAddress" -> row.getAs[String]("ipAddress"),
-                "dateTime" -> row.getAs[String]("dateTime"),
-                "request" -> row.getAs[String]("request"),
-                "endpoint" -> row.getAs[String]("endpoint"),
-                "protocol" -> row.getAs[String]("protocol"),
-                "status" -> row.getAs[Int]("status"),
-                "bytes" -> row.getAs[Int]("bytes"),
-                "referrer" -> row.getAs[String]("referrer"),
-                "userAgent" -> row.getAs[String]("userAgent"),
-                "responseTime" -> row.getAs[Int]("responseTime")
-              ).refresh(RefreshPolicy.Immediate)
-            }.await
-          })
+           //Alert the user
+           val message = 
+               s"IP Address: ${row.getAs[String]("ipAddress")}\n" +
+               s"Time Stamp: ${row.getAs[String]("dateTime")}\n" +
+               s"Request: ${row.getAs[String]("request")}\n" +
+               s"Endpoint: ${row.getAs[String]("endpoint")}\n" +
+               s"Protocol: ${row.getAs[String]("protocol")}\n" +
+               s"Status: ${row.getAs[Int]("status")}\n" +
+               s"Bytes: ${row.getAs[Int]("bytes")}\n" +
+               s"Referrer: ${row.getAs[String]("referrer")}\n" +
+               s"User Agent: ${row.getAs[String]("userAgent")}\n" +
+               s"Response Time: ${row.getAs[Int]("responseTime")}\n\n"
 
-
-          val message = s"Number of Anomalies - ${batch.length}\n\n" +
-            batch.map(row => s"IP Address: ${row.getAs[String]("ipAddress")}\n" +
-              s"Time Stamp: ${row.getAs[String]("dateTime")}\n" +
-              s"Request: ${row.getAs[String]("request")}\n" +
-              s"Endpoint: ${row.getAs[String]("endpoint")}\n" +
-              s"Protocol: ${row.getAs[String]("protocol")}\n" +
-              s"Status: ${row.getAs[Int]("status")}\n" +
-              s"Bytes: ${row.getAs[Int]("bytes")}\n" +
-              s"Referrer: ${row.getAs[String]("referrer")}\n" +
-              s"User Agent: ${row.getAs[String]("userAgent")}\n" +
-              s"Response Time: ${row.getAs[Int]("responseTime")}\n\n").mkString("\n")
-
-          SendEmail.send(message)
-        }
+           SendEmail.send(message)
+         }
       }
     }
 
