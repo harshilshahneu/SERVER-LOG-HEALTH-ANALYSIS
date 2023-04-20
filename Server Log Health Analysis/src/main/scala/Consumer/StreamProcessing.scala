@@ -1,5 +1,6 @@
 package Consumer
 
+import org.antlr.v4.runtime.atn.SemanticContext.AND
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.kafka010._
@@ -7,7 +8,6 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.functions._
 
 
 case class KafkaMessage(ipAddress: String, dateTime: String, request: String, endpoint: String, protocol: String, status: Int, bytes: Int, referrer: String, userAgent: String, responseTime: Int) extends Serializable
@@ -64,19 +64,23 @@ object StreamProcessing {
         val batches = (0 until numBatches).map { i =>
           val start = i * 500
           val end = math.min(start + 500, numRows).toInt
-          df.limit(end - start).filter($"bytes" > 100).collect()
+          df.limit(end - start).filter($"bytes" > 100000 and $"responseTime" > 100000).collect()
         }
 
-        println(s"Number of batches: ${batches.length}")
-        // Rule-based classification on the data
-        val classifiedBatches = batches.map(batch => batch.filter(row => row.getAs[Int]("bytes") > 100))
-        println(s"Number of classified batches: ${classifiedBatches.length}")
-        // Print the classified data to the console
-        classifiedBatches.foreach { batch =>
-          println(s"Batch size: ${batch.length}")
-//          batch.foreach(row => println(row))
-        }
+        batches.foreach { batch =>
+          val message = s"Batch ${batch(0).getAs[String]("dateTime")} - ${batch.length} rows\n\n" +
+            batch.map(row => s"IP Address: ${row.getAs[String]("ipAddress")}\n" +
+              s"Request: ${row.getAs[String]("request")}\n" +
+              s"Endpoint: ${row.getAs[String]("endpoint")}\n" +
+              s"Protocol: ${row.getAs[String]("protocol")}\n" +
+              s"Status: ${row.getAs[Int]("status")}\n" +
+              s"Bytes: ${row.getAs[Int]("bytes")}\n" +
+              s"Referrer: ${row.getAs[String]("referrer")}\n" +
+              s"User Agent: ${row.getAs[String]("userAgent")}\n" +
+              s"Response Time: ${row.getAs[Int]("responseTime")}\n\n").mkString("\n")
 
+          SendEmail.send(message)
+        }
       }
     }
 
