@@ -1,11 +1,14 @@
+package Consumer
+
 import java.util.Properties
+import javax.mail._
 import javax.mail.internet.{InternetAddress, MimeMessage}
-import javax.mail.{Authenticator, Message, PasswordAuthentication, Session, Transport}
 
 object SendEmail {
-  def main(args: Array[String]): Unit = {
+  def send(anomaly: String): Unit = {
+    println("Sending email")
     val fromEmail = "arvindmann307@gmail.com" // replace with your email address
-    val password = "@to be replaced with an import" // replace with your password
+    val password = "**" // replace with your password
     val toEmail = "bgharshilshah@gmail.com" // replace with the recipient's email address
 
     val props = new Properties()
@@ -25,8 +28,8 @@ object SendEmail {
     val message = new MimeMessage(session)
     message.setFrom(new InternetAddress(fromEmail))
     message.addRecipient(Message.RecipientType.TO, new InternetAddress(toEmail))
-    message.setSubject("Test email from Scala")
-    message.setText("This is a test email sent from Scala.")
+    message.setSubject("Anomaly Detected")
+    message.setText(s"An anomaly has been detected: $anomaly")
 
     Transport.send(message)
     println("Email sent successfully.")
