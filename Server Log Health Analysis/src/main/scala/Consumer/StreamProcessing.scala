@@ -1,6 +1,5 @@
 package Consumer
 
-import org.antlr.v4.runtime.atn.SemanticContext.AND
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.kafka010._
@@ -8,6 +7,11 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.apache.spark.sql.SparkSession
+import com.sksamuel.elastic4s.{ElasticClient, ElasticProperties, RequestFailure, RequestSuccess}
+import com.sksamuel.elastic4s.fields.TextField
+import com.sksamuel.elastic4s.http.JavaClient
+import com.sksamuel.elastic4s.requests.common.RefreshPolicy
+import com.sksamuel.elastic4s.requests.searches.SearchResponse
 
 
 case class KafkaMessage(ipAddress: String, dateTime: String, request: String, endpoint: String, protocol: String, status: Int, bytes: Int, referrer: String, userAgent: String, responseTime: Int) extends Serializable
@@ -19,6 +23,31 @@ object StreamProcessing {
     // Set the logger level to error
     Logger.getLogger("org").setLevel(Level.ERROR)
     Logger.getLogger("akka").setLevel(Level.ERROR)
+
+    // in this example we create a client to a local Docker container at localhost:9200
+    val client = ElasticClient(JavaClient(ElasticProperties("http://localhost:9200")))
+
+    // we must import the dsl
+    import com.sksamuel.elastic4s.ElasticDsl._
+
+    //create an index to store anomalies
+    client.execute {
+      createIndex("anomalies").mapping(
+        properties(
+          textField("ipAddress"),
+          textField("dateTime"),
+          textField("request"),
+          textField("endpoint"),
+          textField("protocol"),
+          intField("status"),
+          intField("bytes"),
+          textField("referrer"),
+          textField("userAgent"),
+          intField("responseTime")
+        )
+      )
+    }.await
+
     // Create a Spark configuration
     val conf = new SparkConf()
       .setAppName("StreamingApp")
@@ -68,6 +97,25 @@ object StreamProcessing {
         }
 
         batches.foreach { batch =>
+
+          batch.map(row => {
+            client.execute {
+              indexInto("artists").fields(
+                "ipAddress" -> row.getAs[String]("ipAddress"),
+                "dateTime" -> row.getAs[String]("dateTime"),
+                "request" -> row.getAs[String]("request"),
+                "endpoint" -> row.getAs[String]("endpoint"),
+                "protocol" -> row.getAs[String]("protocol"),
+                "status" -> row.getAs[Int]("status"),
+                "bytes" -> row.getAs[Int]("bytes"),
+                "referrer" -> row.getAs[String]("referrer"),
+                "userAgent" -> row.getAs[String]("userAgent"),
+                "responseTime" -> row.getAs[Int]("responseTime")
+              ).refresh(RefreshPolicy.Immediate)
+            }.await
+          })
+
+
           val message = s"Number of Anomalies - ${batch.length}\n\n" +
             batch.map(row => s"IP Address: ${row.getAs[String]("ipAddress")}\n" +
               s"Time Stamp: ${row.getAs[String]("dateTime")}\n" +
