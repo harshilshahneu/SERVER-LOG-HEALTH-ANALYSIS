@@ -5,10 +5,21 @@ import javax.mail._
 import javax.mail.internet.{InternetAddress, MimeMessage}
 
 object SendEmail {
-  def send(anomaly: String): Unit = {
+  def send(row: org.apache.spark.sql.Row): Unit = {
     val fromEmail = "arvindmann307@gmail.com" // Sender
-    val password = "" // Key generated
+    val password = "tixyewqkhkfojnph" // Key generated
     val toEmail = "bgharshilshah@gmail.com" // Receiver
+    val formattedAnomaly =
+      s"IP Address: ${row.getAs[String]("ipAddress")}\n" +
+        s"Time Stamp: ${row.getAs[String]("dateTime")}\n" +
+        s"Request: ${row.getAs[String]("request")}\n" +
+        s"Endpoint: ${row.getAs[String]("endpoint")}\n" +
+        s"Protocol: ${row.getAs[String]("protocol")}\n" +
+        s"Status: ${row.getAs[Int]("status")}\n" +
+        s"Bytes: ${row.getAs[Int]("bytes")}\n" +
+        s"Referrer: ${row.getAs[String]("referrer")}\n" +
+        s"User Agent: ${row.getAs[String]("userAgent")}\n" +
+        s"Response Time: ${row.getAs[Int]("responseTime")}\n\n"
 
     val props = new Properties()
     props.put("mail.smtp.host", "smtp.gmail.com")
@@ -29,9 +40,8 @@ object SendEmail {
     message.setFrom(new InternetAddress(fromEmail))
     message.addRecipient(Message.RecipientType.TO, new InternetAddress(toEmail))
     message.setSubject("Anomaly Detected")
-    message.setText(s"An anomaly has been detected: $anomaly")
+    message.setText(s"An anomaly has been detected: $formattedAnomaly")
 
-    println("Sending Alert")
     Transport.send(message)
   }
 }
