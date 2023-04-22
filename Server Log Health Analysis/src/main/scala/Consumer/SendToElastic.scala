@@ -15,7 +15,7 @@ object SendToElastic {
     // create a client to a local Docker container at localhost:9200
     val client = ElasticClient(JavaClient(ElasticProperties("http://localhost:9200")))
 
-    def createIndex (indexName: String): CreateIndexRequest =
+    def createIndexRequest (indexName: String): CreateIndexRequest =
     {
         createIndex(indexName).mapping(
             properties(
