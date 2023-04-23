@@ -9,6 +9,7 @@
 5. Apache Zookeeper 3.8.1
 6. Elasticsearch 8.7.0
 7. Kibana 8.7.0
+8. JDK 11 while running the project files
 
 ### Project Description
 
@@ -21,12 +22,12 @@ The aim of this project is to develop a real-time data processing pipeline for s
 3. User monitors the server traffic activity via the visualizations on the Dashboard
 4. System parses data over long term for user to determine business specific decisions such as scalability
 
-### Execution Steps
+### Execution Steps (mac)
 
-1. Start the Zookeeper server
-2. Start the Kafka server
-3. Start ElasticSearch server
-4. Build SBT dependencies.
+1. Start the Zookeeper server - bin/zookeeper-server-start.sh config/zookeeper.properties
+2. Start the Kafka server - bin/kafka-server-start.sh config/server.properties
+3. Start ElasticSearch server - bin/elasticsearch
+4. Build SBT dependencies
 5. Run main/scala/Consumer/StreamProcessing.scala
 6. Run main/scala/Producer/Main.scala
 
