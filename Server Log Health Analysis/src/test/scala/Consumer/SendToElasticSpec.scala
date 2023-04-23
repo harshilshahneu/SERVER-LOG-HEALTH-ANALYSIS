@@ -37,7 +37,7 @@ class SendToElasticSpec extends AnyFlatSpec with Matchers {
 
     // Excluding the unique Index ID from the comparison
     val expectedRequestStr = expectedRequest.toString.substring(0,1246)
-    val newRequestStr = expectedRequest.toString.substring(0,1246)
+    val newRequestStr = newRequest.toString.substring(0,1246)
 
     newRequestStr shouldEqual expectedRequestStr
   }
