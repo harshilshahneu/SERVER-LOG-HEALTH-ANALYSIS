@@ -32,9 +32,10 @@ object SendToElastic {
             )
         )
     }
-    def deleteIndex(indexName: String): DeleteIndexRequest = {
+    def deleteIndexRequest(indexName: String): DeleteIndexRequest = {
        deleteIndex(indexName)
     }
+
     def send(row: org.apache.spark.sql.Row): Unit = {
        
         // Convert the timestamp string to a LocalDateTime object
