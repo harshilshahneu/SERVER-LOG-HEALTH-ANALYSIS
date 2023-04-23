@@ -42,8 +42,6 @@ object SendToElastic {
         val formatter = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z")
         val logDateTime = LocalDateTime.parse(row.getAs[String]("dateTime"), formatter)
 
-        println("Test 1")
-
         //Send data to ElasticSearch
         client.execute {
             indexInto("serveranomalies").fields(
@@ -61,8 +59,6 @@ object SendToElastic {
             "responseTime" -> row.getAs[Int]("responseTime")
             ).refresh(RefreshPolicy.Immediate)
         }.await
-
-        println("Test 2")
 
     }
 }
