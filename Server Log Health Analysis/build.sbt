@@ -23,5 +23,6 @@ libraryDependencies ++= Seq(
   "org.apache.kafka" % "kafka-clients" % "2.8.1",
   "org.apache.spark" %% "spark-mllib" % "3.2.0",
   "javax.mail" % "mail" % "1.4.7",
-  "com.sksamuel.elastic4s" %% "elastic4s-client-esjava" % "8.6.0"
+  "com.sksamuel.elastic4s" %% "elastic4s-client-esjava" % "8.6.0",
+  "org.mockito" %% "mockito-scala" % "1.16.46"
 )
