@@ -10,6 +10,7 @@
 6. Elasticsearch 8.7.0
 7. Kibana 8.7.0
 8. JDK 11 while running the project files
+9. Configure the keys and emails in SendEmail.scala under consumer
 
 ### Project Description
 
