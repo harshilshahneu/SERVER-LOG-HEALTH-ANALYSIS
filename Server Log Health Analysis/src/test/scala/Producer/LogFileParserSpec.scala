@@ -7,6 +7,12 @@ import org.scalatest.matchers.should.Matchers
 class LogFileParserSpec extends AnyFlatSpec with Matchers {
   val logFileParser = new LogFileParser()
 
+
+  "parseLogFile" should "return an empty list for an empty log file" in {
+    val logFile = "src/main/resources/empty.log"
+    logFileParser.parseLogFile(logFile) should be(empty)
+  }
+
   "LogFileParser" should "parse all the log entries" in {
     val logFile = "src/main/resources/logfiles.log"
     val parsedLogEntries = logFileParser.parseLogFile(logFile)
@@ -20,6 +26,24 @@ class LogFileParserSpec extends AnyFlatSpec with Matchers {
     val parsed = logFileParser.parse(logFileParser.logEntry, invalidLogEntry)
 
     parsed.successful shouldEqual false
+  }
+
+  it should "return a list of JSON strings for a non-empty log file" in {
+    val logFile = "src/main/resources/logfiles.log"
+    val jsonStrings = logFileParser.parseLogFile(logFile)
+    jsonStrings should not be empty
+    jsonStrings.foreach { jsonString =>
+      assert(jsonString.contains("ipAddress"))
+      assert(jsonString.contains("dateTime"))
+      assert(jsonString.contains("request"))
+      assert(jsonString.contains("endpoint"))
+      assert(jsonString.contains("protocol"))
+      assert(jsonString.contains("status"))
+      assert(jsonString.contains("bytes"))
+      assert(jsonString.contains("referrer"))
+      assert(jsonString.contains("userAgent"))
+      assert(jsonString.contains("responseTime"))
+    }
   }
 }
 
