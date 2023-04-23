@@ -6,9 +6,9 @@ import javax.mail.internet.{InternetAddress, MimeMessage}
 
 object SendEmail {
   def send(row: org.apache.spark.sql.Row): Unit = {
-    val fromEmail = "arvindmann307@gmail.com" // Sender
-    val password = "tixyewqkhkfojnph" // Key generated
-    val toEmail = "bgharshilshah@gmail.com" // Receiver
+    val fromEmail = "sender_email" // Sender
+    val password = "put_your_key_here" // Key generated
+    val toEmail = "receiver_email" // Receiver
     val formattedAnomaly =
       s"IP Address: ${row.getAs[String]("ipAddress")}\n" +
         s"Time Stamp: ${row.getAs[String]("dateTime")}\n" +
